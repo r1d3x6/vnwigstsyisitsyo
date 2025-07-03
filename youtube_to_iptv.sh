@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-REPO_URL="https://github.com/yourusername/your-repo.git"
+REPO_URL="https://github.com/r1d3x6/vnwigstsyisitsyo.git"
 WORK_DIR="/tmp/iptv_generator"
 PLAYLIST_FILE="youtube_iptv.m3u"
 COMMIT_MSG="Auto-update playlist $(date +'%Y-%m-%d %H:%M:%S')"
