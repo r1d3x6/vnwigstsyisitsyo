@@ -24,7 +24,7 @@ jobs:
       
     - name: Run update script
       run: |
-        chmod +x update_playlist.sh
-        ./update_playlist.sh
+        chmod +x youtube_to_iptv.sh
+        ./youtube_to_iptv.sh
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
