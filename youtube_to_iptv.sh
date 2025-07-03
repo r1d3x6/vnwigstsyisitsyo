@@ -1,7 +1,14 @@
 #!/bin/bash
 
-# Define channels with logos (Format: "Channel Name"="YouTube URL|Logo URL")
+# Configuration
+REPO_URL="https://github.com/yourusername/your-repo.git"
+WORK_DIR="/tmp/iptv_generator"
+PLAYLIST_FILE="youtube_iptv.m3u"
+COMMIT_MSG="Auto-update playlist $(date +'%Y-%m-%d %H:%M:%S')"
+
+# Define channels (same as your original)
 declare -A channels=(
+    ["24/7 Mr bean"]="https://m.youtube.com/live/amzgpxDsJjQ|https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRdE8B6TfR8VPk_FyFC98t97So4oPnEkYmJtH_gJHYiTeMT0A2KNmoIJI&s=10"
 ["Jamuna TV"]="https://m.youtube.com/watch?v=yDzvLqfQhyM|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/jamunatv.png"
     ["Somoy TV"]="https://m.youtube.com/watch?v=OJVLgmpnk4U|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/somoytv.png"
     ["Ekattor TV"]="https://m.youtube.com/watch?v=Byw9GNvDz8A|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/ekattor-tv.png"
@@ -14,12 +21,21 @@ declare -A channels=(
        ["ANN NEWS CH"]="https://m.youtube.com/watch?v=coYw-eVU0Ks"
        ["GEO News"]="https://m.youtube.com/watch?v=O3DPVlynUM0"
        ["Alquran Alkareem"]="https://m.youtube.com/watch?v=-BlZnoDjxmM|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/alquran-alkarim.png"
-       ["24/7 Mr bean"]="https://m.youtube.com/live/amzgpxDsJjQ|https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRdE8B6TfR8VPk_FyFC98t97So4oPnEkYmJtH_gJHYiTeMT0A2KNmoIJI&s=10"
-    # Add more channels with logos...
+    
 )
 
-PLAYLIST="/storage/emulated/0/r1d3x6/YOUTUBE/youtube_iptv.m3u"
-echo "#EXTM3U" > "$PLAYLIST"
+# Setup working directory
+rm -rf "$WORK_DIR"
+mkdir -p "$WORK_DIR"
+cd "$WORK_DIR" || exit 1
+
+# Clone the repository
+git clone "$REPO_URL" .
+git config user.name "GitHub Actions"
+git config user.email "actions@github.com"
+
+# Generate playlist
+echo "#EXTM3U" > "$PLAYLIST_FILE"
 
 for channel in "${!channels[@]}"; do
     IFS='|' read -r url logo_url <<< "${channels[$channel]}"
@@ -28,11 +44,14 @@ for channel in "${!channels[@]}"; do
     stream_url=$(yt-dlp -g --format "best[height<=720]" "$url" 2>/dev/null)
     
     if [ -n "$stream_url" ]; then
-        echo "#EXTINF:-1 tvg-id=\"$channel\" tvg-logo=\"$logo_url\" group-title=\"YouTube\",$channel" >> "$PLAYLIST"
-        echo "$stream_url" >> "$PLAYLIST"
+        echo "#EXTINF:-1 tvg-id=\"$channel\" tvg-logo=\"$logo_url\" group-title=\"YouTube\",$channel" >> "$PLAYLIST_FILE"
+        echo "$stream_url" >> "$PLAYLIST_FILE"
     else
-        echo "ERROR: Could not fetch $channel"
+        echo "ERROR: Could not fetch $channel" >> errors.log
     fi
 done
 
-echo "Playlist updated: $PLAYLIST"
+# Commit and push changes
+git add "$PLAYLIST_FILE"
+git commit -m "$COMMIT_MSG"
+git push origin main
