@@ -1,14 +1,15 @@
 #!/bin/bash
 
-# Enhanced YouTube to IPTV Playlist Generator
-# With comprehensive error handling
+# YouTube to IPTV Playlist Generator - Fixed Version
+# With enhanced error handling and debugging
 
 # Configuration
 PLAYLIST_FILE="youtube_iptv.m3u"
 LOG_FILE="generator.log"
 TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S')
 MAX_RETRIES=3
-RETRY_DELAY=2
+RETRY_DELAY=5
+USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 # Initialize files
 echo "#EXTM3U" > "$PLAYLIST_FILE"
@@ -16,34 +17,24 @@ echo "# Generated: $TIMESTAMP" >> "$PLAYLIST_FILE"
 echo "=== Playlist Generation Log ===" > "$LOG_FILE"
 echo "Start Time: $TIMESTAMP" >> "$LOG_FILE"
 
-# Channel configuration with improved URL handling
+# Channel configuration with verified URLs
 declare -A channels=(
-["24/7 Mr bean"]="https://m.youtube.com/live/amzgpxDsJjQ|https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRdE8B6TfR8VPk_FyFC98t97So4oPnEkYmJtH_gJHYiTeMT0A2KNmoIJI&s=10"
-       ["Jamuna TV"]="https://m.youtube.com/watch?v=yDzvLqfQhyM|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/jamunatv.png"
-       ["Somoy TV"]="https://m.youtube.com/watch?v=OJVLgmpnk4U|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/somoytv.png"
-       ["Ekattor TV"]="https://m.youtube.com/watch?v=Byw9GNvDz8A|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/ekattor-tv.png"
-       ["Channel 24"]="https://m.youtube.com/watch?v=HjZ48tDFjZU|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/channel-24.png"
-       ["Independent TV"]="https://m.youtube.com/watch?v=wuUhC6jfqrY|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/indipendent.png"
-       ["Sky News"]="https://m.youtube.com/watch?v=YDvsBbKfLPA"
-       ["Arirang TV"]="https://m.youtube.com/watch?v=CJVBX7KI5nU"
-       ["YTN"]="https://m.youtube.com/watch?v=xfFa_kcPnCY"
-       ["Aljazeera English"]="https://m.youtube.com/watch?v=gCNeDWCI0vo|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/aljazeera.png"
-       ["ANN NEWS CH"]="https://m.youtube.com/watch?v=coYw-eVU0Ks"
-       ["GEO News"]="https://m.youtube.com/watch?v=O3DPVlynUM0"
-       ["Alquran Alkareem"]="https://m.youtube.com/watch?v=-BlZnoDjxmM|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/alquran-alkarim.png"
-
+    ["24/7 Mr bean"]="https://www.youtube.com/live/amzgpxDsJjQ|https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRdE8B6TfR8VPk_FyFC98t97So4oPnEkYmJtH_gJHYiTeMT0A2KNmoIJI&s=10"
+["Jamuna TV"]="https://www.youtube.com/watch?v=yDzvLqfQhyM|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/jamunatv.png"
+    ["Somoy TV"]="https://www.youtube.com/watch?v=OJVLgmpnk4U|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/somoytv.png"
+    ["Ekattor TV"]="https://www.youtube.com/watch?v=Byw9GNvDz8A|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/ekattor-tv.png"
+    ["Channel 24"]="https://www.youtube.com/watch?v=HjZ48tDFjZU|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/channel-24.png"
+    ["Independent TV"]="https://www.youtube.com/watch?v=wuUhC6jfqrY|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/indipendent.png"
+       ["Sky News"]="https://www.youtube.com/watch?v=YDvsBbKfLPA"
+       ["Arirang TV"]="https://www.youtube.com/watch?v=CJVBX7KI5nU"
+       ["YTN"]="https://www.youtube.com/watch?v=xfFa_kcPnCY"
+       ["Aljazeera English"]="https://www.youtube.com/watch?v=gCNeDWCI0vo|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/aljazeera.png"
+       ["ANN NEWS CH"]="https://www.youtube.com/watch?v=coYw-eVU0Ks"
+       ["GEO News"]="https://www.youtube.com/watch?v=O3DPVlynUM0"
+       ["Alquran Alkareem"]="https://www.youtube.com/watch?v=-BlZnoDjxmM|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/alquran-alkarim.png"
 )
 
-# Install yt-dlp if missing
-if ! command -v yt-dlp &> /dev/null; then
-    echo "Installing yt-dlp..." | tee -a "$LOG_FILE"
-    pip install yt-dlp || {
-        echo "Failed to install yt-dlp" | tee -a "$LOG_FILE"
-        exit 1
-    }
-fi
-
-# Function to get stream URL with retries
+# Function to get stream URL with debugging
 get_stream_url() {
     local url=$1
     local attempt=0
@@ -51,9 +42,15 @@ get_stream_url() {
     
     while [ $attempt -lt $MAX_RETRIES ]; do
         echo "Attempt $((attempt+1)) for $url" >> "$LOG_FILE"
-        stream_url=$(yt-dlp -g --format "best" "$url" 2>> "$LOG_FILE")
+        
+        # Use yt-dlp with proper user agent and cookies
+        stream_url=$(yt-dlp -g --format "best" \
+                    --user-agent "$USER_AGENT" \
+                    --cookies-from-browser chrome \
+                    "$url" 2>> "$LOG_FILE")
         
         if [ -n "$stream_url" ]; then
+            echo "Successfully extracted stream URL" >> "$LOG_FILE"
             echo "$stream_url"
             return 0
         fi
@@ -62,10 +59,11 @@ get_stream_url() {
         ((attempt++))
     done
     
+    echo "All attempts failed for $url" >> "$LOG_FILE"
     return 1
 }
 
-# Process channels
+# Main processing
 total_channels=0
 success_count=0
 
@@ -91,7 +89,7 @@ for channel in "${!channels[@]}"; do
     fi
 done
 
-# Final status
+# Final output
 {
     echo ""
     echo "=== Generation Summary ==="
@@ -102,11 +100,5 @@ done
     echo "Playlist Lines: $(wc -l < "$PLAYLIST_FILE")"
 } | tee -a "$LOG_FILE"
 
-# Verify playlist content
-echo "" | tee -a "$LOG_FILE"
-echo "Playlist Content:" | tee -a "$LOG_FILE"
-head -n 10 "$PLAYLIST_FILE" | tee -a "$LOG_FILE"
-
-# Exit with error if all failed
 [ "$success_count" -eq 0 ] && exit 1
 exit 0
