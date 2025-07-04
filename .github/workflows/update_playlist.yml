@@ -11,34 +11,35 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@v4  # Updated to v4
+    - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v5  # Updated to v5
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ffmpeg
-        pip install yt-dlp --upgrade
+        sudo apt-get install -y ffmpeg chromium-browser
+        pip install yt-dlp browser-cookie3 --upgrade
 
     - name: Generate Playlist
       id: generate
       run: |
+        mkdir -p ~/.config/youtube-dl
         chmod +x youtube_to_iptv.sh
         ./youtube_to_iptv.sh
         echo "success=$(grep -c 'SUCCESS:' generator.log)" >> $GITHUB_OUTPUT
 
-    - name: Upload Results
-      uses: actions/upload-artifact@v4  # Updated to v4
-      if: always()
+    - name: Upload Debug Files
+      uses: actions/upload-artifact@v4
+      if: failure()
       with:
-        name: iptv-results
+        name: debug-files
         path: |
           youtube_iptv.m3u
           generator.log
