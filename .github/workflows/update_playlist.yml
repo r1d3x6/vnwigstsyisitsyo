@@ -2,7 +2,7 @@ name: Update IPTV Playlist
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 */6 * * *'  # Every 6 hours
   workflow_dispatch:
 
 permissions:
@@ -11,47 +11,43 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    
+    timeout-minutes: 15
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+    - uses: actions/checkout@v4  # Updated to v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5  # Updated to v5
       with:
         python-version: '3.10'
 
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ffmpeg chromium-browser
-        pip install --upgrade yt-dlp browser-cookie3
+        sudo apt-get install -y ffmpeg
+        pip install yt-dlp --upgrade
 
-    - name: Run Playlist Generator
-      id: generator
+    - name: Generate Playlist
+      id: generate
       run: |
-        mkdir -p ~/.config/youtube-dl
         chmod +x youtube_to_iptv.sh
         ./youtube_to_iptv.sh
-        echo "success_count=$(grep -oP 'Successfully Added: \K\d+' generator.log)" >> $GITHUB_OUTPUT
+        echo "success=$(grep -c 'SUCCESS:' generator.log)" >> $GITHUB_OUTPUT
 
-    - name: Upload Logs
-      uses: actions/upload-artifact@v3
+    - name: Upload Results
+      uses: actions/upload-artifact@v4  # Updated to v4
       if: always()
       with:
-        name: generator-logs
+        name: iptv-results
         path: |
-          generator.log
           youtube_iptv.m3u
+          generator.log
 
-    - name: Commit and Push
-      if: steps.generator.outputs.success_count > 0
+    - name: Commit Changes
+      if: steps.generate.outputs.success > 0
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
         git add youtube_iptv.m3u generator.log
-        git diff --cached --quiet || git commit -m "Auto-update: $(date +'%Y-%m-%d %H:%M')"
+        git commit -m "Auto-update: $(date +'%Y-%m-%d %H:%M')"
         git push
