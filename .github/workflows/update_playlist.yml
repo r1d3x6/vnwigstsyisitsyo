@@ -1,0 +1,57 @@
+name: Update IPTV Playlist
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg chromium-browser
+        pip install --upgrade yt-dlp browser-cookie3
+
+    - name: Run Playlist Generator
+      id: generator
+      run: |
+        mkdir -p ~/.config/youtube-dl
+        chmod +x youtube_to_iptv.sh
+        ./youtube_to_iptv.sh
+        echo "success_count=$(grep -oP 'Successfully Added: \K\d+' generator.log)" >> $GITHUB_OUTPUT
+
+    - name: Upload Logs
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: generator-logs
+        path: |
+          generator.log
+          youtube_iptv.m3u
+
+    - name: Commit and Push
+      if: steps.generator.outputs.success_count > 0
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add youtube_iptv.m3u generator.log
+        git diff --cached --quiet || git commit -m "Auto-update: $(date +'%Y-%m-%d %H:%M')"
+        git push
