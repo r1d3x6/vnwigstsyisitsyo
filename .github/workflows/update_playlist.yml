@@ -11,10 +11,12 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Get complete history
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -24,31 +26,36 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ffmpeg chromium-browser
-        pip install yt-dlp browser-cookie3 --upgrade
+        sudo apt-get install -y ffmpeg
+        pip install yt-dlp --upgrade
 
     - name: Generate Playlist
       id: generate
       run: |
-        mkdir -p ~/.config/youtube-dl
         chmod +x youtube_to_iptv.sh
         ./youtube_to_iptv.sh
         echo "success=$(grep -c 'SUCCESS:' generator.log)" >> $GITHUB_OUTPUT
 
     - name: Upload Debug Files
       uses: actions/upload-artifact@v4
-      if: failure()
+      if: always()
       with:
-        name: debug-files
+        name: debug-$(date +'%Y%m%d%H%M%S')
         path: |
           youtube_iptv.m3u
           generator.log
 
-    - name: Commit Changes
+    - name: Commit and Push Changes
       if: steps.generate.outputs.success > 0
       run: |
+        # Pull latest changes first
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
+        git pull --rebase
+        
+        # Add and commit
         git add youtube_iptv.m3u generator.log
         git commit -m "Auto-update: $(date +'%Y-%m-%d %H:%M')"
-        git push
+        
+        # Force push if needed
+        git push origin HEAD:main || git push --force origin HEAD:main
