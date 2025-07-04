@@ -1,69 +1,50 @@
-name: IPTV Playlist Updater
+name: IPTV Playlist Generator
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours
+    - cron: '15 */3 * * *'  # Every 3 hours at :15
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: write
-
 jobs:
-  update:
+  generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
 
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
-    - name: Setup environment
+    - name: Setup Environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          ffmpeg \
-          chromium-browser \
-          xvfb
-        pip install --upgrade \
-          yt-dlp \
-          browser-cookie3 \
-          pyvirtualdisplay
+        sudo apt-get install -y ffmpeg chromium-browser
+        pip install yt-dlp browser-cookie3 --upgrade
 
-    - name: Start virtual display
-      run: |
-        Xvfb :99 &
-        export DISPLAY=:99
-
-    - name: Generate playlist
+    - name: Generate Playlist
       id: generator
       run: |
         chmod +x youtube_to_iptv.sh
-        ./youtube_to_iptv.sh
-        echo "success=$(grep -c 'SUCCESS:' generator-debug.log)" >> $GITHUB_OUTPUT
-        echo "total=$(grep -oP 'Total Channels: \K\d+' generator-debug.log)" >> $GITHUB_OUTPUT
+        Xvfb :99 & DISPLAY=:99 ./youtube_to_iptv.sh
+        echo "success=$(grep -c 'SUCCESS:' generator.log)" >> $GITHUB_OUTPUT
 
-    - name: Upload debug info
+    - name: Upload Results
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: debug-${{ github.run_number }}
+        name: results-${{ github.run_id }}
         path: |
           youtube_iptv.m3u
-          generator-debug.log
-        retention-days: 7
+          generator.log
 
-    - name: Commit changes
+    - name: Commit Changes
       if: steps.generator.outputs.success > 0
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
-        git pull --rebase
-        git add youtube_iptv.m3u generator-debug.log
-        git commit -m "Update: ${{ steps.generator.outputs.success }}/${{ steps.generator.outputs.total }} channels"
+        git add youtube_iptv.m3u generator.log
+        git commit -m "Update: ${{ steps.generator.outputs.success }} channels"
         git push
