@@ -10,25 +10,24 @@ TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S')
 
 # Verified working channels
 declare -A channels=(
-["Jamuna TV"]="https://m.youtube.com/watch?v=yDzvLqfQhyM|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/jamunatv.png"
-    ["Somoy TV"]="https://m.youtube.com/watch?v=OJVLgmpnk4U|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/somoytv.png"
-    ["Ekattor TV"]="https://m.youtube.com/watch?v=Byw9GNvDz8A|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/ekattor-tv.png"
-    ["Channel 24"]="https://m.youtube.com/watch?v=HjZ48tDFjZU|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/channel-24.png"
-    ["Independent TV"]="https://m.youtube.com/watch?v=wuUhC6jfqrY|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/indipendent.png"
-       ["Sky News"]="https://m.youtube.com/watch?v=YDvsBbKfLPA"
-       ["Arirang TV"]="https://m.youtube.com/watch?v=CJVBX7KI5nU"
-       ["YTN"]="https://m.youtube.com/watch?v=xfFa_kcPnCY"
-       ["Aljazeera English"]="https://m.youtube.com/watch?v=gCNeDWCI0vo|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/aljazeera.png"
-       ["ANN NEWS CH"]="https://m.youtube.com/watch?v=coYw-eVU0Ks"
-       ["GEO News"]="https://m.youtube.com/watch?v=O3DPVlynUM0"
-       ["Alquran Alkareem"]="https://m.youtube.com/watch?v=-BlZnoDjxmM|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/alquran-alkarim.png"
-    # Add more in format: ["Name"]="URL|LOGO"
+["Jamuna TV"]="https://www.youtube.com/watch?v=yDzvLqfQhyM|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/jamunatv.png"
+    ["Somoy TV"]="https://www.youtube.com/watch?v=OJVLgmpnk4U|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/somoytv.png"
+    ["Ekattor TV"]="https://www.youtube.com/watch?v=Byw9GNvDz8A|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/ekattor-tv.png"
+    ["Channel 24"]="https://www.youtube.com/watch?v=HjZ48tDFjZU|https://raw.githubusercontent.com/r1d3x6/tandjtales/refs/heads/Tom-and-Jerry-Tales/channel-24.png"
+    ["Independent TV"]="https://www.youtube.com/watch?v=wuUhC6jfqrY|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/indipendent.png"
+       ["Sky News"]="https://www.youtube.com/watch?v=YDvsBbKfLPA"
+       ["Arirang TV"]="https://www.youtube.com/watch?v=CJVBX7KI5nU"
+       ["YTN"]="https://www.youtube.com/watch?v=xfFa_kcPnCY"
+       ["Aljazeera English"]="https://www.youtube.com/watch?v=gCNeDWCI0vo|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/aljazeera.png"
+       ["ANN NEWS CH"]="https://www.youtube.com/watch?v=coYw-eVU0Ks"
+       ["GEO News"]="https://www.youtube.com/watch?v=O3DPVlynUM0"
+       ["Alquran Alkareem"]="https://www.youtube.com/watch?v=-BlZnoDjxmM|https://raw.githubusercontent.com/r1d3x6/skgitvglogojkkk/refs/heads/main/alquran-alkarim.png"
     
     # Add more channels ONLY after verifying they work
 )
 
 # Initialize files with proper header
-echo "#EXTM3U x-tvg-url=\"https://example.com/epg.xml\"" > "$PLAYLIST_FILE"
+# echo "#EXTM3U x-tvg-url=\"" > "$PLAYLIST_FILE"
 echo "# Generated: $TIMESTAMP" >> "$PLAYLIST_FILE"
 echo "=== DEBUG LOG ===" > "$LOG_FILE"
 echo "Started: $TIMESTAMP" >> "$LOG_FILE"
