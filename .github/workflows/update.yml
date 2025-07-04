@@ -2,9 +2,11 @@ name: Update IPTV Playlist
 
 on:
   schedule:
-    # Runs every 6 hours
-    - cron: '0 */6 * * *'
+    - cron: '0 */6 * * *'  # Every 6 hours
   workflow_dispatch:
+
+permissions:
+  contents: write  # This is crucial
 
 jobs:
   update:
@@ -13,7 +15,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-      
+      with:
+        fetch-depth: 0  # Important for git history
+        
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -27,4 +31,4 @@ jobs:
         chmod +x youtube_to_iptv.sh
         ./youtube_to_iptv.sh
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # No need for GITHUB_TOKEN here as actions/checkout handles it
